@@ -1,0 +1,6 @@
+venv/
+.idea/
+.env
+chroma_db/
+uploads/
+__pycache__/
