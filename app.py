@@ -6,7 +6,7 @@ import os
 
 from services.chunker import chunk_text
 from services.document_loader import load_pdf
-from services.vector_store import save_chunks, search_documents
+from services.vector_store import save_chunks, search_documents, get_sources, clear_collection
 from services.rag import generate_answer
 from utils.ai_response_cleaner import clean_ai_response
 
@@ -96,3 +96,20 @@ def ask(question: str):
         "answer": response_json.get("answer"),
         "sources": response_json.get("sources", [])
     }
+
+
+@app.get("/sources")
+def sources():
+    return {
+        "sources": get_sources()
+    }
+
+
+@app.post("/clear")
+def clear():
+    clear_collection()
+
+    return {
+        "message": "Knowledge base cleared successfully."
+    }
+

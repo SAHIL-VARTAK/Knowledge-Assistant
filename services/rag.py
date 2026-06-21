@@ -34,9 +34,13 @@ def generate_answer(question: str, context: str) -> str:
         }}
         """
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt
-    )
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
 
-    return response.text
+        return response.text
+
+    except Exception as e:
+        return f"Error generating answer: {str(e)}"

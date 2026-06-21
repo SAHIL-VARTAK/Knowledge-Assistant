@@ -16,15 +16,9 @@ Upload one or more PDF documents and ask questions about them.
 """
 )
 
-
-# SESSION STATE
-if "uploaded_files" not in st.session_state:
-    st.session_state.uploaded_files = []
-
 # SIDEBAR
-
 with st.sidebar:
-    st.header("Upload Documents 📂")
+    st.header("📤 Upload Documents")
 
     uploaded_files = st.file_uploader(
         "Select PDF files",
@@ -32,13 +26,12 @@ with st.sidebar:
         accept_multiple_files=True
     )
 
-    if st.button("Upload Documents"):
-        if not uploaded_files:
-            st.warning("Please select at least one PDF.")
-        else:
-            progress_bar = st.progress(0)
-
-            for index, uploaded_file in enumerate(uploaded_files):
+    if st.button(
+        "Upload Documents",
+        use_container_width=True
+    ):
+        if uploaded_files:
+            for uploaded_file in uploaded_files:
                 files = {
                     "file": (
                         uploaded_file.name,
@@ -53,32 +46,73 @@ with st.sidebar:
                 )
 
                 if response.status_code == 200:
-                    data = response.json()
-
                     st.success(
-                        f"Uploaded: {data['filename']}"
+                        f"Uploaded {uploaded_file.name}"
                     )
-
-                    if uploaded_file.name not in st.session_state.uploaded_files:
-                        st.session_state.uploaded_files.append(
-                            uploaded_file.name
-                        )
-
                 else:
                     st.error(
                         f"Failed to upload {uploaded_file.name}"
                     )
 
-                progress_bar.progress(
-                    (index + 1) / len(uploaded_files)
+            st.rerun()
+        else:
+            st.warning(
+                "Please select a PDF."
+            )
+
+    st.divider()
+
+    st.header("📚 Knowledge Base")
+
+    try:
+        response = requests.get(
+            f"{API_BASE_URL}/sources"
+        )
+
+        sources = response.json().get(
+            "sources",
+            []
+        )
+
+        if sources:
+            st.caption(
+                f"{len(sources)} document(s) indexed"
+            )
+
+            for source in sources:
+                st.write(
+                    f"📄 {source}"
                 )
+        else:
+            st.info(
+                "No documents uploaded."
+            )
+    except Exception:
+        st.error(
+            "Unable to load knowledge base."
+        )
 
-# SHOW UPLOADED FILES
-if st.session_state.uploaded_files:
-    st.subheader("Uploaded Documents")
+    st.divider()
 
-    for file_name in st.session_state.uploaded_files:
-        st.write(f"📄 {file_name}")
+    if st.button(
+        "🗑️ Clear Knowledge Base",
+        use_container_width=True
+    ):
+        response = requests.post(
+            f"{API_BASE_URL}/clear"
+        )
+
+        if response.status_code == 200:
+            st.success(
+                "Knowledge base cleared."
+            )
+
+            st.rerun()
+
+        else:
+            st.error(
+                "Failed to clear knowledge base."
+            )
 
 # QUESTION SECTION
 st.divider()
