@@ -4,6 +4,7 @@ import os
 
 from services.chunker import chunk_text
 from services.document_loader import load_pdf
+from services.vector_store import save_chunks, search_documents
 
 app = FastAPI()
 
@@ -29,8 +30,21 @@ async def upload_document(file: UploadFile = File(...)):
     chunks = chunk_text(extracted_text)
     print(len(chunks))
 
+    save_chunks(chunks, file.filename)
+
     return {
         "message": "File uploaded successfully",
         "filename": file.filename,
-        "characters_extracted": len(extracted_text)
+        "characters_extracted": len(extracted_text),
+        "chunks_created": len(chunks)
+    }
+
+
+@app.get("/search")
+def search(query: str):
+    results = search_documents(query)
+
+    return {
+        "query": query,
+        "documents": results["documents"][0]
     }
