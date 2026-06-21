@@ -32,7 +32,6 @@ async def upload_document(file: UploadFile = File(...)):
     extracted_text = load_pdf(file_path)
 
     chunks = chunk_text(extracted_text)
-    print(len(chunks))
 
     save_chunks(chunks, file.filename)
 
