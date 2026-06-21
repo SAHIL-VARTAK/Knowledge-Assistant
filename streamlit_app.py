@@ -8,8 +8,34 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown("""
+<style>
+
+/* User message */
+div[data-testid="stChatMessage"]:has(
+    div[data-testid="stChatMessageAvatarUser"]
+){
+    margin-left: 20%;
+    width: 80%;
+}
+
+/* Assistant message */
+div[data-testid="stChatMessage"]:has(
+    div[data-testid="stChatMessageAvatarAssistant"]
+){
+    margin-right: 20%;
+    width: 80%;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+# SESSION STATE
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
 # HEADER
-st.title("Personal Knowledge Assistant")
+st.title("📚 Personal Knowledge Assistant")
 st.markdown(
     """
 Upload one or more PDF documents and ask questions about them.
@@ -107,6 +133,7 @@ with st.sidebar:
                 "Knowledge base cleared."
             )
 
+            st.session_state.messages = []
             st.rerun()
 
         else:
@@ -114,49 +141,106 @@ with st.sidebar:
                 "Failed to clear knowledge base."
             )
 
-# QUESTION SECTION
+    if st.button(
+        "🧹 Clear Chat",
+        use_container_width=True
+    ):
+        st.session_state.messages = []
+        st.rerun()
+
+# CHAT AREA
 st.divider()
 
-question = st.text_input(
-    "Ask a question",
-    placeholder="Example: What certifications do I have?"
+for message in st.session_state.messages:
+    with st.chat_message(
+            message["role"]
+    ):
+        st.markdown(
+            message["content"]
+        )
+
+        if (
+                message["role"] == "assistant"
+                and message.get("sources")
+        ):
+            st.caption("Sources")
+
+            for source in message["sources"]:
+                st.caption(
+                    f"📄 {source}"
+                )
+
+# CHAT INPUT
+question = st.chat_input(
+    "Ask a question about your documents..."
 )
 
-# ASK QUESTION
-ask_button = st.button("Ask")
+if question:
+    # Display user message
+    st.session_state.messages.append(
+        {
+            "role": "user",
+            "content": question
+        }
+    )
 
-if ask_button:
-    if not question.strip():
-        st.warning("Please enter a question.")
+    with st.chat_message("user"):
+        st.markdown(
+            question
+        )
 
-    else:
-        with st.spinner("Searching documents and generating answer..."):
-            response = requests.get(
-                f"{API_BASE_URL}/ask",
-                params={
-                    "question": question
-                }
-            )
+    # Assistant response
+    with st.chat_message("assistant"):
+        with st.spinner(
+            "Searching documents..."
+        ):
+            try:
+                response = requests.get(
+                    f"{API_BASE_URL}/ask",
+                    params={
+                        "question": question
+                    }
+                )
 
-            if response.status_code == 200:
-                data = response.json()
-                st.subheader("Answer")
+                if response.status_code == 200:
+                    data = response.json()
 
-                st.success(
-                    data.get(
+                    answer = data.get(
                         "answer",
                         "No answer returned."
                     )
-                )
 
-                sources = data.get("sources", [])
+                    sources = data.get(
+                        "sources",
+                        []
+                    )
 
-                if sources:
-                    st.subheader("Sources")
-                    for source in sources:
-                        st.write(f"📄 {source}")
+                    st.markdown(
+                        answer
+                    )
 
-            else:
+                    if sources:
+                        st.caption(
+                            "Sources"
+                        )
+
+                        for source in sources:
+                            st.caption(
+                                f"📄 {source}"
+                            )
+
+                    st.session_state.messages.append(
+                        {
+                            "role": "assistant",
+                            "content": answer,
+                            "sources": sources
+                        }
+                    )
+                else:
+                    st.error(
+                        f"Request failed ({response.status_code})"
+                    )
+            except Exception as e:
                 st.error(
-                    f"Request failed ({response.status_code})"
+                    f"Error: {str(e)}"
                 )

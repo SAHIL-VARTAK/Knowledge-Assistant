@@ -39,6 +39,7 @@ def generate_answer(question: str, context: str) -> str:
             model="gemini-2.5-flash",
             contents=prompt
         )
+        print(response.text)
 
         return response.text
 

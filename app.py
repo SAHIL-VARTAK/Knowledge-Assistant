@@ -55,9 +55,7 @@ def search(query: str):
 
 @app.get("/ask")
 def ask(question: str):
-
     results = search_documents(question)
-
     documents = results.get("documents", [])
 
     if not documents or not documents[0]:
@@ -66,7 +64,6 @@ def ask(question: str):
         }
 
     context_parts = []
-
     for doc, metadata in zip(
             results["documents"][0],
             results["metadatas"][0]
@@ -89,13 +86,20 @@ def ask(question: str):
 
     response_text = clean_ai_response(response_text)
 
-    response_json = json.loads(response_text)
+    try:
+        response_json = json.loads(response_text)
 
-    return {
-        "question": response_json.get("question"),
-        "answer": response_json.get("answer"),
-        "sources": response_json.get("sources", [])
-    }
+        return {
+            "question": response_json.get("question"),
+            "answer": response_json.get("answer"),
+            "sources": response_json.get("sources", [])
+        }
+    except Exception:
+        return {
+            "question": question,
+            "answer": f"Error with Gemini API: {response_text}",
+            "sources": []
+        }
 
 
 @app.get("/sources")
