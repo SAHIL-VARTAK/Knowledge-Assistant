@@ -1,6 +1,7 @@
 import json
 
 from fastapi import FastAPI, UploadFile, File
+from pydantic import BaseModel
 import shutil
 import os
 
@@ -15,6 +16,11 @@ app = FastAPI()
 UPLOAD_DIR = "uploads"
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+class AskRequest(BaseModel):
+    question: str
+    chat_history: list = []
 
 
 @app.get("/")
@@ -53,8 +59,11 @@ def search(query: str):
     }
 
 
-@app.get("/ask")
-def ask(question: str):
+@app.post("/ask")
+def ask(request: AskRequest):
+    question = request.question
+    chat_history = request.chat_history
+
     results = search_documents(question)
     documents = results.get("documents", [])
 
@@ -64,10 +73,7 @@ def ask(question: str):
         }
 
     context_parts = []
-    for doc, metadata in zip(
-            results["documents"][0],
-            results["metadatas"][0]
-    ):
+    for doc, metadata in zip(results["documents"][0], results["metadatas"][0]):
         context_parts.append(
             f"""
             Source: {metadata['source']}
@@ -79,9 +85,18 @@ def ask(question: str):
 
     context = "\n\n".join(context_parts)
 
+    history_text = ""
+
+    for message in chat_history:
+        role = message.get("role", "user")
+        content = message.get("content", "")
+
+        history_text += f"{role}: {content}\n"
+
     response_text = generate_answer(
         question=question,
-        context=context
+        context=context,
+        history=history_text
     )
 
     response_text = clean_ai_response(response_text)

@@ -10,20 +10,32 @@ client = genai.Client(
 )
 
 
-def generate_answer(question: str, context: str) -> str:
+def generate_answer(question: str, context: str, history: str) -> str:
     prompt = f"""
         You are a document assistant.
     
         Answer ONLY using the provided context.
+        
+        Use the conversation history to understand references such as:
+        - "it"
+        - "that"
+        - "the second one"
+        - "tell me more"
     
         After answering, return the source filenames that were actually used.
+        
+        If the answer is not present in the documents, say:
+        "I could not find that information in the uploaded documents."
     
         Return valid JSON only.
     
-        Context:
+        Conversation History:
+        {history}
+
+        Document Context:
         {context}
     
-        Question:
+        Current Question:
         {question}
     
         Format:

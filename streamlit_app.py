@@ -195,10 +195,11 @@ if question:
             "Searching documents..."
         ):
             try:
-                response = requests.get(
+                response = requests.post(
                     f"{API_BASE_URL}/ask",
-                    params={
-                        "question": question
+                    json={
+                        "question": question,
+                        "chat_history": st.session_state.messages[-10:]
                     }
                 )
 
