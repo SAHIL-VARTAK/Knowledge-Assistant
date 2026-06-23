@@ -142,9 +142,13 @@ with st.sidebar:
             )
 
     if st.button(
-        "🧹 Clear Chat",
-        use_container_width=True
+            "🧹 Clear Chat",
+            use_container_width=True
     ):
+        requests.post(
+            f"{API_BASE_URL}/clear-chat"
+        )
+
         st.session_state.messages = []
         st.rerun()
 
@@ -195,11 +199,10 @@ if question:
             "Searching documents..."
         ):
             try:
-                response = requests.post(
+                response = requests.get(
                     f"{API_BASE_URL}/ask",
-                    json={
-                        "question": question,
-                        "chat_history": st.session_state.messages[-10:]
+                    params={
+                        "question": question
                     }
                 )
 

@@ -5,6 +5,7 @@ from pydantic import BaseModel
 import shutil
 import os
 
+from services.chat_memory import get_history, add_message, clear_history
 from services.chunker import chunk_text
 from services.document_loader import load_pdf
 from services.vector_store import save_chunks, search_documents, get_sources, clear_collection
@@ -59,11 +60,8 @@ def search(query: str):
     }
 
 
-@app.post("/ask")
-def ask(request: AskRequest):
-    question = request.question
-    chat_history = request.chat_history
-
+@app.get("/ask")
+def ask(question: str):
     results = search_documents(question)
     documents = results.get("documents", [])
 
@@ -85,13 +83,16 @@ def ask(request: AskRequest):
 
     context = "\n\n".join(context_parts)
 
+    history = get_history()
     history_text = ""
 
-    for message in chat_history:
-        role = message.get("role", "user")
-        content = message.get("content", "")
-
-        history_text += f"{role}: {content}\n"
+    for message in history:
+        history_sources = ", ".join(message.get("source", []))
+        history_text += (
+            f"Role: {message.get('role', '')}\n"
+            f"Content: {message.get('content', '')}\n"
+            f"Sources: {history_sources}\n\n"
+        )
 
     response_text = generate_answer(
         question=question,
@@ -103,6 +104,9 @@ def ask(request: AskRequest):
 
     try:
         response_json = json.loads(response_text)
+
+        add_message("user", question, None)
+        add_message("assistant", response_json.get("answer"), response_json.get("sources", None))
 
         return {
             "question": response_json.get("question"),
@@ -127,8 +131,17 @@ def sources():
 @app.post("/clear")
 def clear():
     clear_collection()
+    clear_history()
 
     return {
         "message": "Knowledge base cleared successfully."
     }
 
+
+@app.post("/clear-chat")
+def clear_chat():
+    clear_history()
+
+    return {
+        "message": "Chat history cleared."
+    }
