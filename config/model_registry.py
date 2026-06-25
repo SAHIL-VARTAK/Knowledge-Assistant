@@ -6,10 +6,9 @@ MODEL_REGISTRY = {
         "gemini-2.5-pro"
     ],
     "Ollama": [
+        "gemma3:1b",
         "qwen3:4b",
         "gemma3:4b",
-        "phi4-mini",
-        "qwen3:8b"
     ]
 }
 
