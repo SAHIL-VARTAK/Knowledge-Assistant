@@ -1,12 +1,15 @@
 import json
 
 from fastapi import FastAPI, UploadFile, File
+from pydantic import BaseModel
 import shutil
 import os
 
+from config.model_registry import MODEL_REGISTRY, CURRENT_CONFIG
+from services.chat_memory import get_history, add_message, clear_history
 from services.chunker import chunk_text
 from services.document_loader import load_pdf
-from services.vector_store import save_chunks, search_documents
+from services.vector_store import save_chunks, search_documents, get_sources, clear_collection
 from services.rag import generate_answer
 from utils.ai_response_cleaner import clean_ai_response
 
@@ -15,6 +18,17 @@ app = FastAPI()
 UPLOAD_DIR = "uploads"
 
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+class AskRequest(BaseModel):
+    question: str
+    chat_history: list = []
+
+
+class ModelConfig(BaseModel):
+    provider: str
+    model: str
+    api_key: str
 
 
 @app.get("/")
@@ -55,9 +69,7 @@ def search(query: str):
 
 @app.get("/ask")
 def ask(question: str):
-
     results = search_documents(question)
-
     documents = results.get("documents", [])
 
     if not documents or not documents[0]:
@@ -66,11 +78,7 @@ def ask(question: str):
         }
 
     context_parts = []
-
-    for doc, metadata in zip(
-            results["documents"][0],
-            results["metadatas"][0]
-    ):
+    for doc, metadata in zip(results["documents"][0], results["metadatas"][0]):
         context_parts.append(
             f"""
             Source: {metadata['source']}
@@ -82,17 +90,83 @@ def ask(question: str):
 
     context = "\n\n".join(context_parts)
 
+    history = get_history()
+    history_text = ""
+
+    for message in history:
+        history_sources = ", ".join(message.get("source", []))
+        history_text += (
+            f"Role: {message.get('role', '')}\n"
+            f"Content: {message.get('content', '')}\n"
+            f"Sources: {history_sources}\n\n"
+        )
+
     response_text = generate_answer(
         question=question,
-        context=context
+        context=context,
+        history=history_text
     )
 
     response_text = clean_ai_response(response_text)
 
-    response_json = json.loads(response_text)
+    try:
+        response_json = json.loads(response_text)
+
+        add_message("user", question, None)
+        add_message("assistant", response_json.get("answer"), response_json.get("sources", None))
+
+        return {
+            "question": response_json.get("question"),
+            "answer": response_json.get("answer"),
+            "sources": response_json.get("sources", [])
+        }
+    except Exception:
+        return {
+            "question": question,
+            "answer": f"Error with Gemini API: {response_text}",
+            "sources": []
+        }
+
+
+@app.get("/sources")
+def sources():
+    return {
+        "sources": get_sources()
+    }
+
+
+@app.post("/clear")
+def clear():
+    clear_collection()
+    clear_history()
 
     return {
-        "question": response_json.get("question"),
-        "answer": response_json.get("answer"),
-        "sources": response_json.get("sources", [])
+        "message": "Knowledge base cleared successfully."
+    }
+
+
+@app.post("/clear-chat")
+def clear_chat():
+    clear_history()
+
+    return {
+        "message": "Chat history cleared."
+    }
+
+
+@app.get("/providers")
+def get_providers():
+    return MODEL_REGISTRY
+
+
+@app.post("/model-config")
+def update_model_config(
+    config: ModelConfig
+):
+    CURRENT_CONFIG["provider"] = config.provider
+    CURRENT_CONFIG["model"] = config.model
+    CURRENT_CONFIG["api_key"] = config.api_key or os.getenv("GEMINI_API_KEY")
+
+    return {
+        "message": "Configuration updated."
     }
