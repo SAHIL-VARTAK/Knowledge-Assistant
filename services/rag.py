@@ -1,12 +1,11 @@
-import os
-
 from dotenv import load_dotenv
 from google import genai
+from config.model_registry import CURRENT_CONFIG
 
 load_dotenv()
 
 client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
+    api_key=CURRENT_CONFIG["api_key"]
 )
 
 
@@ -48,7 +47,7 @@ def generate_answer(question: str, context: str, history: str) -> str:
 
     try:
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model=CURRENT_CONFIG["model"],
             contents=prompt
         )
         print(response.text)

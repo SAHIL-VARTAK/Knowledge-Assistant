@@ -44,6 +44,49 @@ Upload one or more PDF documents and ask questions about them.
 
 # SIDEBAR
 with st.sidebar:
+    # Model Selection
+    st.header("Model Selector")
+
+    response = requests.get(
+        f"{API_BASE_URL}/providers"
+    )
+
+    providers = response.json()
+
+    selected_provider = st.selectbox(
+        "Provider",
+        list(providers.keys())
+    )
+
+    selected_model = st.selectbox(
+        "Model",
+        providers[selected_provider]
+    )
+
+    api_key = st.text_input(
+        "API Key",
+        type="password"
+    )
+
+    if st.button(
+            "Use Model",
+            use_container_width=True
+    ):
+        requests.post(
+            f"{API_BASE_URL}/model-config",
+            json={
+                "provider": selected_provider,
+                "model": selected_model,
+                "api_key": api_key
+            }
+        )
+
+        st.success(
+            "Model configuration updated."
+        )
+
+    st.divider()
+
     st.header("📤 Upload Documents")
 
     uploaded_files = st.file_uploader(

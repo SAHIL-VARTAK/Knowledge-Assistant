@@ -5,6 +5,7 @@ from pydantic import BaseModel
 import shutil
 import os
 
+from config.model_registry import MODEL_REGISTRY, CURRENT_CONFIG
 from services.chat_memory import get_history, add_message, clear_history
 from services.chunker import chunk_text
 from services.document_loader import load_pdf
@@ -22,6 +23,12 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 class AskRequest(BaseModel):
     question: str
     chat_history: list = []
+
+
+class ModelConfig(BaseModel):
+    provider: str
+    model: str
+    api_key: str
 
 
 @app.get("/")
@@ -144,4 +151,22 @@ def clear_chat():
 
     return {
         "message": "Chat history cleared."
+    }
+
+
+@app.get("/providers")
+def get_providers():
+    return MODEL_REGISTRY
+
+
+@app.post("/model-config")
+def update_model_config(
+    config: ModelConfig
+):
+    CURRENT_CONFIG["provider"] = config.provider
+    CURRENT_CONFIG["model"] = config.model
+    CURRENT_CONFIG["api_key"] = config.api_key or os.getenv("GEMINI_API_KEY")
+
+    return {
+        "message": "Configuration updated."
     }
