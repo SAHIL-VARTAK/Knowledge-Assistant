@@ -263,7 +263,8 @@ if question:
                     )
 
                     st.markdown(
-                        answer
+                        answer.replace("\n", "<br>"),
+                        unsafe_allow_html=True
                     )
 
                     if sources:
