@@ -1,4 +1,5 @@
 from google import genai
+from services.prompt_factory import get_prompt
 from config.model_registry import CURRENT_CONFIG
 import ollama
 
@@ -8,40 +9,15 @@ def generate_answer(
         context: str,
         history: str
 ) -> str:
-    prompt = f"""
-        You are a document assistant.
+    prompt = get_prompt(
+        provider=CURRENT_CONFIG["provider"],
+        model=CURRENT_CONFIG["model"],
+        question=question,
+        context=context,
+        history=history
+    )
 
-        Answer ONLY using the provided context.
-
-        Use the conversation history to understand references such as:
-        - "it"
-        - "that"
-        - "the second one"
-        - "tell me more"
-
-        After answering, return the source filenames that were actually used.
-
-        If the answer is not present in the documents, say:
-        "I could not find that information in the uploaded documents."
-
-        Return valid JSON only.
-
-        Conversation History:
-        {history}
-
-        Document Context:
-        {context}
-
-        Current Question:
-        {question}
-
-        Format:
-        {{
-          "question": "user question",
-          "answer": "...",
-          "sources": ["file1.pdf"]
-        }}
-        """
+    print(f'Generating response using {CURRENT_CONFIG["provider"]} : {CURRENT_CONFIG["model"]}')
 
     try:
         provider = CURRENT_CONFIG["provider"]

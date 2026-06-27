@@ -11,7 +11,8 @@ from services.chunker import chunk_text
 from services.document_loader import load_pdf
 from services.vector_store import save_chunks, search_documents, get_sources, clear_collection
 from services.rag import generate_answer
-from utils.ai_response_cleaner import clean_ai_response
+from utils.ai_response_cleaner import parse_ai_response
+from utils.file_cleanup import clear_application_data
 
 app = FastAPI()
 
@@ -107,18 +108,16 @@ def ask(question: str):
         history=history_text
     )
 
-    response_text = clean_ai_response(response_text)
-
     try:
-        response_json = json.loads(response_text)
+        response_data = parse_ai_response(response_text, question)
 
         add_message("user", question, None)
-        add_message("assistant", response_json.get("answer"), response_json.get("sources", None))
+        add_message("assistant", response_data.get("answer"), response_data.get("sources", None))
 
         return {
-            "question": response_json.get("question"),
-            "answer": response_json.get("answer"),
-            "sources": response_json.get("sources", [])
+            "question": response_data.get("question"),
+            "answer": response_data.get("answer"),
+            "sources": response_data.get("sources", [])
         }
     except Exception:
         return {
@@ -139,6 +138,7 @@ def sources():
 def clear():
     clear_collection()
     clear_history()
+    clear_application_data()
 
     return {
         "message": "Knowledge base cleared successfully."
