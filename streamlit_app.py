@@ -38,7 +38,7 @@ if "messages" not in st.session_state:
 st.title("📚 Personal Knowledge Assistant")
 st.markdown(
     """
-Upload one or more PDF documents and ask questions about them.
+Upload one or more documents and ask questions about them.
 """
 )
 
@@ -90,8 +90,23 @@ with st.sidebar:
     st.header("📤 Upload Documents")
 
     uploaded_files = st.file_uploader(
-        "Select PDF files",
-        type=["pdf"],
+        "Select Documents",
+        type=[
+            "pdf",
+            "docx",
+            "txt",
+            "md",
+            "py",
+            "java",
+            "js",
+            "ts",
+            "html",
+            "css",
+            "sql",
+            "cpp",
+            "c",
+            "cs"
+        ],
         accept_multiple_files=True
     )
 
@@ -105,7 +120,7 @@ with st.sidebar:
                     "file": (
                         uploaded_file.name,
                         uploaded_file,
-                        "application/pdf"
+                        uploaded_file.type
                     )
                 }
 
@@ -126,7 +141,7 @@ with st.sidebar:
             st.rerun()
         else:
             st.warning(
-                "Please select a PDF."
+                "Please select a valid file."
             )
 
     st.divider()

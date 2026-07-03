@@ -8,7 +8,7 @@ import os
 from config.model_registry import MODEL_REGISTRY, CURRENT_CONFIG
 from services.chat_memory import get_history, add_message, clear_history
 from services.chunker import chunk_text
-from services.document_loader import load_pdf
+from services.document_loader import load_pdf, load_document
 from services.vector_store import save_chunks, search_documents, get_sources, clear_collection
 from services.rag import generate_answer
 from utils.ai_response_cleaner import parse_ai_response
@@ -44,8 +44,15 @@ async def upload_document(file: UploadFile = File(...)):
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    extracted_text = load_pdf(file_path)
+    try:
+        extracted_text = load_document(file_path)
 
+    except ValueError as e:
+        os.remove(file_path)
+        return {
+            "message": str(e)
+        }
+    print(extracted_text)
     chunks = chunk_text(extracted_text)
 
     save_chunks(chunks, file.filename)
