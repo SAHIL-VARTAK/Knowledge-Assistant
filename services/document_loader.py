@@ -1,19 +1,9 @@
 from pathlib import Path
+
 from docx import Document
 from pypdf import PdfReader
 
-SUPPORTED_CODE_FILES = [
-    ".py",
-    ".java",
-    ".js",
-    ".ts",
-    ".html",
-    ".css",
-    ".sql",
-    ".cpp",
-    ".c",
-    ".cs"
-]
+SUPPORTED_CODE_FILES = [".py", ".java", ".js", ".ts", ".html", ".css", ".sql", ".cpp", ".c", ".cs"]
 
 
 def load_pdf(file_path: str) -> str:
@@ -39,7 +29,7 @@ def load_docx(file_path: str) -> str:
 
 
 def load_text(file_path: str) -> str:
-    with open(file_path, "r", encoding="utf-8") as file:
+    with open(file_path, encoding="utf-8") as file:
         return file.read()
 
 
@@ -58,6 +48,4 @@ def load_document(file_path: str) -> str:
     elif extension in SUPPORTED_CODE_FILES:
         return load_text(file_path)
 
-    raise ValueError(
-        f"Unsupported file type: {extension}"
-    )
+    raise ValueError(f"Unsupported file type: {extension}")

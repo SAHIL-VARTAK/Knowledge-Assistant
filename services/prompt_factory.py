@@ -1,57 +1,23 @@
-def get_prompt(
-        provider: str,
-        model: str,
-        question: str,
-        context: str,
-        history: str
-) -> str:
+def get_prompt(provider: str, model: str, question: str, context: str, history: str) -> str:
     if provider == "Gemini":
-        return _get_gemini_prompt(
-            question,
-            context,
-            history
-        )
+        return _get_gemini_prompt(question, context, history)
 
     if model == "phi4-mini":
-        return _get_phi_prompt(
-            question,
-            context,
-            history
-        )
+        return _get_phi_prompt(question, context, history)
 
     if model == "llama3.2:3b":
-        return _get_llama_prompt(
-            question,
-            context,
-            history
-        )
+        return _get_llama_prompt(question, context, history)
 
     if model == "qwen3:4b":
-        return _get_qwen_prompt(
-            question,
-            context,
-            history
-        )
+        return _get_qwen_prompt(question, context, history)
 
     if model == "gemma3:1b":
-        return _get_gemma_prompt(
-            question,
-            context,
-            history
-        )
+        return _get_gemma_prompt(question, context, history)
 
-    return _get_gemini_prompt(
-        question,
-        context,
-        history
-    )
+    return _get_gemini_prompt(question, context, history)
 
 
-def _get_gemini_prompt(
-        question: str,
-        context: str,
-        history: str
-) -> str:
+def _get_gemini_prompt(question: str, context: str, history: str) -> str:
     return f"""
             You are a document assistant.
 
@@ -94,11 +60,7 @@ def _get_gemini_prompt(
             """
 
 
-def _get_phi_prompt(
-        question: str,
-        context: str,
-        history: str
-) -> str:
+def _get_phi_prompt(question: str, context: str, history: str) -> str:
     return f"""
             You are a document assistant.
 
@@ -141,11 +103,7 @@ def _get_phi_prompt(
             """
 
 
-def _get_llama_prompt(
-        question: str,
-        context: str,
-        history: str
-) -> str:
+def _get_llama_prompt(question: str, context: str, history: str) -> str:
     return f"""
             You are a document assistant.
 
@@ -193,11 +151,7 @@ def _get_llama_prompt(
             """
 
 
-def _get_qwen_prompt(
-        question: str,
-        context: str,
-        history: str
-) -> str:
+def _get_qwen_prompt(question: str, context: str, history: str) -> str:
     return f"""
             You are a document assistant. Give quick response
             Answer ONLY using the provided context.
@@ -234,11 +188,7 @@ def _get_qwen_prompt(
             """
 
 
-def _get_gemma_prompt(
-        question,
-        context,
-        history
-):
+def _get_gemma_prompt(question, context, history):
     return f"""
         You are a document assistant.
         
