@@ -55,7 +55,7 @@ async def upload_document(file: UploadFile = File(...)):  # noqa: B008
     except ValueError as e:
         os.remove(file_path)
         return {"message": str(e)}
-    print(extracted_text)
+
     chunks = chunk_text(extracted_text)
 
     save_chunks(chunks, file.filename)

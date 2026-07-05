@@ -3,7 +3,7 @@ import shutil
 
 
 def clear_application_data():
-    directories = ["uploads", "chroma_db"]
+    directories = ["uploads"]
 
     for directory in directories:
         if not os.path.exists(directory):
