@@ -42,7 +42,8 @@ def health():
 
 
 @app.post("/upload")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(file: UploadFile = File(...)):  # noqa: B008
+    # Skip ruff check since this is Fast API pattern
     file_path = os.path.join(UPLOAD_DIR, file.filename)
 
     with open(file_path, "wb") as buffer:
@@ -83,7 +84,7 @@ def ask(question: str):
         return {"answer": "No relevant information found."}
 
     context_parts = []
-    for doc, metadata in zip(results["documents"][0], results["metadatas"][0]):
+    for doc, metadata in zip(results["documents"][0], results["metadatas"][0], strict=True):
         context_parts.append(
             f"""
             Source: {metadata["source"]}

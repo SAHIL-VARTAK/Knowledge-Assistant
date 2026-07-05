@@ -14,3 +14,6 @@ select = [
 ignore = [
     "E501"
 ]
+
+[tool.ruff.lint.per-file-ignores]
+"services/embeddings.py" = ["E402"]
