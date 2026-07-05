@@ -4,3 +4,4 @@ venv/
 chroma_db/
 uploads/
 __pycache__/
+.ruff_cache
