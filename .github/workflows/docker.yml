@@ -1,0 +1,58 @@
+name: Docker
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+      - develop
+
+    paths:
+      - "Dockerfile"
+      - "docker-compose.yml"
+      - "requirements.txt"
+      - ".github/workflows/docker.yml"
+
+jobs:
+  docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Create empty .env
+        run: |
+          touch .env
+
+      - name: Build Docker images
+        run: |
+          docker compose build
+
+      - name: Start services
+        run: |
+          docker compose up -d
+
+      - name: Wait for backend
+        run: |
+          timeout 120 bash -c '
+          until curl -f http://localhost:8000; do
+            echo "Waiting for backend..."
+            sleep 5
+          done
+          '
+
+      - name: Check Streamlit
+        run: |
+          curl -f http://localhost:8501/healthz
+
+      - name: Show logs on failure
+        if: failure()
+        run: |
+          docker compose logs
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker compose down -v
