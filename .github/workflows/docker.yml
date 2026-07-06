@@ -46,7 +46,7 @@ jobs:
 
       - name: Check Streamlit
         run: |
-          curl -f http://localhost:8501/healthz
+          curl -f http://localhost:8501/_stcore/health
 
       - name: Show logs on failure
         if: failure()
