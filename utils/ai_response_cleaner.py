@@ -1,15 +1,8 @@
 import json
 
 
-def parse_ai_response(
-        response_text: str,
-        question: str
-) -> dict:
-    result = {
-        "question": "",
-        "answer": "",
-        "sources": []
-    }
+def parse_ai_response(response_text: str, question: str) -> dict:
+    result = {"question": "", "answer": "", "sources": []}
 
     # Strategy 1: Try JSON
     try:
@@ -17,27 +10,14 @@ def parse_ai_response(
 
         # Standard format
         if "ANSWER" in data:
-            result["question"] = data.get(
-                "QUESTION",
-                question
-            )
+            result["question"] = data.get("QUESTION", question)
 
-            result["answer"] = data.get(
-                "ANSWER",
-                ""
-            )
+            result["answer"] = data.get("ANSWER", "")
 
-            sources = data.get(
-                "SOURCES",
-                []
-            )
+            sources = data.get("SOURCES", [])
 
             if isinstance(sources, str):
-                result["sources"] = [
-                    source.strip()
-                    for source in sources.split(",")
-                    if source.strip()
-                ]
+                result["sources"] = [source.strip() for source in sources.split(",") if source.strip()]
 
             elif isinstance(sources, list):
                 result["sources"] = sources
@@ -63,11 +43,7 @@ def parse_ai_response(
 
         if line.startswith("QUESTION:"):
             current_section = "question"
-            value = line.replace(
-                "QUESTION:",
-                "",
-                1
-            ).strip()
+            value = line.replace("QUESTION:", "", 1).strip()
 
             if value:
                 result["question"] = value
@@ -76,11 +52,7 @@ def parse_ai_response(
 
         if line.startswith("ANSWER:"):
             current_section = "answer"
-            value = line.replace(
-                "ANSWER:",
-                "",
-                1
-            ).strip()
+            value = line.replace("ANSWER:", "", 1).strip()
 
             if value:
                 result["answer"] = value
@@ -90,44 +62,24 @@ def parse_ai_response(
         if line.startswith("SOURCES:"):
             current_section = "sources"
 
-            value = line.replace(
-                "SOURCES:",
-                "",
-                1
-            ).strip()
+            value = line.replace("SOURCES:", "", 1).strip()
 
             if value:
-                result["sources"] = [
-                    source.strip()
-                    for source in value.split(",")
-                ]
+                result["sources"] = [source.strip() for source in value.split(",")]
             continue
 
         if current_section == "question":
-            result["question"] += (
-                ("\n" if result["question"] else "")
-                + line
-            )
+            result["question"] += ("\n" if result["question"] else "") + line
 
         elif current_section == "answer":
-            result["answer"] += (
-                ("\n" if result["answer"] else "")
-                + line
-            )
+            result["answer"] += ("\n" if result["answer"] else "") + line
 
         elif current_section == "sources":
             if line:
                 if "," in line:
-                    result["sources"].extend(
-                        [
-                            source.strip()
-                            for source in line.split(",")
-                        ]
-                    )
+                    result["sources"].extend([source.strip() for source in line.split(",")])
                 else:
-                    result["sources"].append(
-                        line
-                    )
+                    result["sources"].append(line)
 
     if not result["question"]:
         result["question"] = question
