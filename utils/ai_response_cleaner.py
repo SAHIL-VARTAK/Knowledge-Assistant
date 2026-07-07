@@ -2,7 +2,11 @@ import json
 
 
 def parse_ai_response(response_text: str, question: str) -> dict:
-    result = {"question": "", "answer": "", "sources": []}
+    result = {
+        "question": "",
+        "answer": "",
+        "sources": [],
+    }
 
     # Strategy 1: Try JSON
     try:
@@ -11,7 +15,6 @@ def parse_ai_response(response_text: str, question: str) -> dict:
         # Standard format
         if "ANSWER" in data:
             result["question"] = data.get("QUESTION", question)
-
             result["answer"] = data.get("ANSWER", "")
 
             sources = data.get("SOURCES", [])
@@ -20,10 +23,11 @@ def parse_ai_response(response_text: str, question: str) -> dict:
                 result["sources"] = [source.strip() for source in sources.split(",") if source.strip()]
 
             elif isinstance(sources, list):
-                result["sources"] = sources
+                result["sources"] = [source.strip() for source in sources if source.strip()]
 
             return result
 
+        # Llama-style format
         if len(data) == 1:
             key = list(data.keys())[0]
 
@@ -32,7 +36,7 @@ def parse_ai_response(response_text: str, question: str) -> dict:
 
             return result
 
-    except Exception:
+    except json.JSONDecodeError:
         pass
 
     # Strategy 2: QUESTION / ANSWER / SOURCES parser
@@ -43,6 +47,7 @@ def parse_ai_response(response_text: str, question: str) -> dict:
 
         if line.startswith("QUESTION:"):
             current_section = "question"
+
             value = line.replace("QUESTION:", "", 1).strip()
 
             if value:
@@ -52,6 +57,7 @@ def parse_ai_response(response_text: str, question: str) -> dict:
 
         if line.startswith("ANSWER:"):
             current_section = "answer"
+
             value = line.replace("ANSWER:", "", 1).strip()
 
             if value:
@@ -65,24 +71,31 @@ def parse_ai_response(response_text: str, question: str) -> dict:
             value = line.replace("SOURCES:", "", 1).strip()
 
             if value:
-                result["sources"] = [source.strip() for source in value.split(",")]
+                result["sources"] = [source.strip() for source in value.split(",") if source.strip()]
+
             continue
 
         if current_section == "question":
-            result["question"] += ("\n" if result["question"] else "") + line
+            if line:
+                result["question"] += ("\n" if result["question"] else "") + line
 
         elif current_section == "answer":
-            result["answer"] += ("\n" if result["answer"] else "") + line
+            if line:
+                result["answer"] += ("\n" if result["answer"] else "") + line
 
         elif current_section == "sources":
             if line:
                 if "," in line:
-                    result["sources"].extend([source.strip() for source in line.split(",")])
+                    result["sources"].extend([source.strip() for source in line.split(",") if source.strip()])
                 else:
-                    result["sources"].append(line)
+                    result["sources"].append(line.strip())
 
     if not result["question"]:
         result["question"] = question
+
+    result["question"] = result["question"].strip()
+    result["answer"] = result["answer"].strip()
+    result["sources"] = [source.strip() for source in result["sources"] if source.strip()]
 
     print(result)
 
