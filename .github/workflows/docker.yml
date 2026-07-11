@@ -44,6 +44,14 @@ jobs:
           done
           '
 
+      - name: Run tests with coverage
+        run: |
+          docker compose exec -T backend \
+            pytest \
+            --cov=. \
+            --cov-report=term-missing \
+            --cov-report=xml:reports/coverage/coverage.xml
+
       - name: Wait for Streamlit
         run: |
           timeout 120 bash -c '

@@ -38,4 +38,5 @@ omit = [
     "venv/*",
     ".venv/*",
     "reports/*",
+    "streamlit_app.py",
 ]
