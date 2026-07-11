@@ -25,11 +25,6 @@ UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
-class AskRequest(BaseModel):
-    question: str
-    chat_history: list = []
-
-
 class ModelConfig(BaseModel):
     provider: str
     model: str

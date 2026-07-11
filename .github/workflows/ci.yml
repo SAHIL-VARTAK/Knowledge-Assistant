@@ -52,6 +52,7 @@ jobs:
         run: |
           ruff format . --check
 
-      - name: Run tests
-        run: |
-          pytest
+      - name: Run Tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: pytest

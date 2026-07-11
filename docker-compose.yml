@@ -12,6 +12,8 @@ services:
     volumes:
       - chroma_data:/app/chroma_db
       - uploads_data:/app/uploads
+    environment:
+      PYTHONPATH: /app
     env_file:
       - .env
     healthcheck:

@@ -6,17 +6,17 @@ from services.prompt_factory import get_prompt
 
 
 def generate_answer(question: str, context: str, history: str) -> str:
-    prompt = get_prompt(
-        provider=CURRENT_CONFIG["provider"],
-        model=CURRENT_CONFIG["model"],
-        question=question,
-        context=context,
-        history=history,
-    )
-
-    print(f"Generating response using {CURRENT_CONFIG['provider']} : {CURRENT_CONFIG['model']}")
-
     try:
+        prompt = get_prompt(
+            provider=CURRENT_CONFIG["provider"],
+            model=CURRENT_CONFIG["model"],
+            question=question,
+            context=context,
+            history=history,
+        )
+
+        print(f"Generating response using {CURRENT_CONFIG['provider']} : {CURRENT_CONFIG['model']}")
+
         provider = CURRENT_CONFIG["provider"]
         model = CURRENT_CONFIG["model"]
 

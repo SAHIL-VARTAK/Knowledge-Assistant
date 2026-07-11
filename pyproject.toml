@@ -17,3 +17,26 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "services/embeddings.py" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+
+addopts = """
+--cov=.
+--cov-report=term-missing
+--cov-report=html:reports/coverage/html
+--cov-report=xml:reports/coverage/coverage.xml
+"""
+
+[tool.coverage.run]
+source = [
+    "."
+]
+omit = [
+    "tests/*",
+    "venv/*",
+    ".venv/*",
+    "reports/*",
+    "streamlit_app.py",
+]
