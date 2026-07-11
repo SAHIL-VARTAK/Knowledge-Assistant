@@ -1,12 +1,8 @@
 conversation_history = []
 
 
-def add_message(role: str, content: str, sources = None):
-    conversation_history.append({
-        "role": role,
-        "content": content,
-        "source": sources or []
-    })
+def add_message(role: str, content: str, sources=None):
+    conversation_history.append({"role": role, "content": content, "source": sources or []})
 
 
 def get_history():
